@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>Blog admin | Tactyqal Labs</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>:focus-visible{outline:3px solid #2D3BFF;outline-offset:2px}</style></head>
+<body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+<header class="border-b bg-white"><div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4">
+  <h1 class="text-lg font-bold">Blog admin <a href="/docs" class="ml-3 text-sm font-medium text-blue-700 underline">API docs</a></h1>
+  <form id="tokenForm" class="flex gap-2"><label class="sr-only" for="token">Admin token</label>
+    <input id="token" type="password" placeholder="Admin token" class="w-52 rounded-lg border px-3 py-2 text-sm" autocomplete="off">
+    <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Sign in</button></form>
+</div></header>
+<main class="mx-auto grid max-w-6xl gap-6 px-5 py-6 lg:grid-cols-[1fr_1.1fr]">
+  <section aria-label="Posts"><div class="mb-3 flex items-center justify-between"><h2 class="font-bold">All posts</h2>
+    <button id="new" class="rounded-lg border bg-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-100">New post</button></div>
+    <p id="msg" class="mb-3 text-sm text-slate-600" role="status">Sign in with your admin token to manage posts. The local default is dev-admin-token.</p>
+    <ul id="list" class="space-y-2"></ul></section>
+  <form id="form" class="space-y-3 rounded-2xl border bg-white p-5" aria-label="Post editor">
+    <h2 id="formTitle" class="font-bold">New post</h2><input type="hidden" id="id">
+    <label class="block text-sm font-medium">Title<input id="title" required minlength="3" maxlength="160" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <label class="block text-sm font-medium">Content <span class="font-normal text-slate-500">(blank line between paragraphs, "## " starts a heading)</span>
+      <textarea id="content" required rows="9" class="mt-1 w-full rounded-lg border px-3 py-2"></textarea></label>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="block text-sm font-medium">Category<input id="category" placeholder="General" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+      <label class="block text-sm font-medium">Tags (comma separated)<input id="tags" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+      <label class="block text-sm font-medium">Cover image URL<input id="cover" type="url" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+      <label class="block text-sm font-medium">Status<select id="status" class="mt-1 w-full rounded-lg border px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option></select></label>
+    </div>
+    <div class="flex gap-2"><button class="rounded-lg bg-blue-700 px-5 py-2 font-semibold text-white hover:bg-blue-800">Save post</button>
+      <button type="button" id="del" class="hidden rounded-lg border border-red-300 px-4 py-2 font-semibold text-red-700 hover:bg-red-50">Delete</button></div>
+  </form>
+</main>
+<section class="mx-auto max-w-6xl px-5 pb-12"><h2 class="mb-3 font-bold">Consultation requests</h2>
+  <div class="overflow-x-auto rounded-2xl border bg-white"><table class="w-full text-left text-sm"><thead class="bg-slate-100"><tr><th class="p-3">Name</th><th class="p-3">Contact</th><th class="p-3">Message</th><th class="p-3">Received</th><th class="p-3">Status</th></tr></thead><tbody id="leads"><tr><td class="p-3 text-slate-500" colspan="5">Sign in to see requests.</td></tr></tbody></table></div></section>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const get = () => sessionStorage.getItem('tok') || '';
+const say = (t) => ($('#msg').textContent = t);
+async function api(path, opts = {}) {
+  const r = await fetch('/api' + path, { ...opts, headers: { 'content-type': 'application/json', authorization: 'Bearer ' + get() } });
+  if (r.status === 204) return null;
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.details?.map((d) => `${d.path}: ${d.message}`).join('; ') || j.error?.message || 'Request failed');
+  return j;
+}
+let posts = [];
+async function load() {
+  try {
+    posts = (await api('/posts?status=all&limit=50')).data;
+    say(`${posts.length} posts`); loadLeads();
+    $('#list').innerHTML = posts.map((p) => `<li><button data-id="${p.id}" data-slug="${esc(p.slug)}" class="flex w-full items-center justify-between gap-3 rounded-xl border bg-white p-3 text-left hover:border-blue-600">
+      <span class="font-medium">${esc(p.title)}</span><span class="rounded-full px-2 py-0.5 text-xs font-semibold ${p.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${p.status}</span></button></li>`).join('');
+  } catch (e) { $('#list').innerHTML = ''; say(e.message === 'A valid admin token is required.' || e.message.includes('admins') ? 'Wrong or missing token. Enter it above and sign in.' : e.message); }
+}
+function fill(p) {
+  $('#id').value = p?.id ?? ''; $('#title').value = p?.title ?? ''; $('#content').value = p?.content ?? '';
+  $('#category').value = p?.category ?? ''; $('#tags').value = (p?.tags ?? []).join(', ');
+  $('#cover').value = p?.cover_image ?? ''; $('#status').value = p?.status ?? 'draft';
+  $('#formTitle').textContent = p ? 'Edit post' : 'New post'; $('#del').classList.toggle('hidden', !p);
+}
+async function loadLeads() {
+  try {
+    const { data } = await api('/leads');
+    $('#leads').innerHTML = data.length ? data.map((l) => `<tr class="border-t"><td class="p-3 font-medium">${esc(l.name)}</td><td class="p-3">${esc(l.email)}<br><span class="text-slate-500">${esc(l.phone || '')}</span></td><td class="p-3 max-w-xs">${esc(l.message || '')}</td><td class="p-3 whitespace-nowrap">${new Date(l.created_at).toLocaleString()}</td>
+      <td class="p-3"><select data-id="${l.id}" class="rounded-lg border px-2 py-1">${['new', 'contacted', 'closed'].map((s) => `<option ${s === l.status ? 'selected' : ''}>${s}</option>`).join('')}</select></td></tr>`).join('') : '<tr><td class="p-3 text-slate-500" colspan="5">No requests yet.</td></tr>';
+  } catch (e) { /* not signed in */ }
+}
+$('#leads').onchange = (e) => api('/leads/' + e.target.dataset.id, { method: 'PATCH', body: JSON.stringify({ status: e.target.value }) }).catch((er) => say(er.message));
+$('#tokenForm').onsubmit = (e) => { e.preventDefault(); sessionStorage.setItem('tok', $('#token').value); load(); };
+$('#new').onclick = () => fill(null);
+$('#list').onclick = async (e) => {
+  const b = e.target.closest('[data-slug]'); if (!b) return;
+  try { fill((await api('/posts/' + encodeURIComponent(b.dataset.slug))).data); } catch (er) { say(er.message); }
+};
+$('#form').onsubmit = async (e) => {
+  e.preventDefault();
+  const body = { title: $('#title').value, content: $('#content').value, status: $('#status').value,
+    tags: $('#tags').value.split(',').map((t) => t.trim()).filter(Boolean), cover_image: $('#cover').value || null };
+  if ($('#category').value.trim()) body.category = $('#category').value.trim();
+  const id = $('#id').value;
+  try {
+    const { data } = await api(id ? '/posts/' + id : '/posts', { method: id ? 'PUT' : 'POST', body: JSON.stringify(body) });
+    fill(data); await load(); say('Saved');
+  } catch (er) { say(er.message); }
+};
+$('#del').onclick = async () => {
+  if (!confirm('Delete this post permanently?')) return;
+  try { await api('/posts/' + $('#id').value, { method: 'DELETE' }); fill(null); await load(); say('Deleted'); } catch (er) { say(er.message); }
+};
+if (get()) load();
+</script></body></html>

@@ -1,0 +1,21 @@
+# Render Blueprint: deploys the blog API. The database lives on Neon (free, does not expire); paste its connection string when asked.
+services:
+  - type: web
+    name: tactyqal-api
+    runtime: node
+    rootDir: api
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PGSSL
+        value: "true"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DATABASE_URL
+        sync: false          # you will be asked for the Neon connection string
+      - key: ADMIN_TOKEN
+        generateValue: true  # Render creates a long random token; read it in the Environment tab

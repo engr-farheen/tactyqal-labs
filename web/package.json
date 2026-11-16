@@ -1,0 +1,33 @@
+{
+  "name": "tactyqal-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "images:hd": "node scripts/fetch-hd-images.mjs",
+    "test": "node --test test/tools.test.mjs",
+    "lint": "eslint src test scripts e2e playwright.config.js",
+    "typecheck": "tsc -p tsconfig.check.json",
+    "e2e": "npm run build && playwright test",
+    "e2e:run": "playwright test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "next": "^16.4.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.6",
+    "typescript": "^6.0.3"
+  }
+}

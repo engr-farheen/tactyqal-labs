@@ -1,0 +1,1086 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "Tactyqal Labs Blog API",
+  "version": "1.0.0",
+  "description": "CRUD API for blog posts, backed by PostgreSQL. Reads are public; writes need `Authorization: Bearer <ADMIN_TOKEN>`. Click Authorize and paste the token to try write endpoints."
+ },
+ "servers": [
+  {
+   "url": "/"
+  }
+ ],
+ "tags": [
+  {
+   "name": "Posts"
+  },
+  {
+   "name": "Meta"
+  },
+  {
+   "name": "Leads"
+  }
+ ],
+ "components": {
+  "securitySchemes": {
+   "bearerAuth": {
+    "type": "http",
+    "scheme": "bearer"
+   }
+  },
+  "parameters": {
+   "Ref": {
+    "name": "ref",
+    "in": "path",
+    "required": true,
+    "schema": {
+     "type": "string"
+    },
+    "description": "GET: the post slug. PUT, PATCH and DELETE: the numeric post id."
+   }
+  },
+  "schemas": {
+   "Post": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer",
+      "example": 7
+     },
+     "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "example": "How to validate a startup idea"
+     },
+     "slug": {
+      "type": "string",
+      "example": "how-to-validate-a-startup-idea"
+     },
+     "excerpt": {
+      "type": "string",
+      "maxLength": 300
+     },
+     "cover_image": {
+      "type": "string",
+      "nullable": true,
+      "description": "Full URL, or a path starting with / served by the website."
+     },
+     "author": {
+      "type": "string",
+      "maxLength": 80,
+      "example": "Tactyqal"
+     },
+     "category": {
+      "type": "string",
+      "maxLength": 60,
+      "example": "Startups"
+     },
+     "tags": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "maxLength": 30
+      },
+      "maxItems": 10
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "draft",
+       "published"
+      ]
+     },
+     "read_minutes": {
+      "type": "integer",
+      "example": 3
+     },
+     "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "content": {
+      "type": "string",
+      "description": "Plain text. Blank line = new paragraph, \"## \" = heading, \"- \" = list item."
+     },
+     "source_url": {
+      "type": "string",
+      "format": "uri",
+      "nullable": true,
+      "description": "Link to the original article (for example on the WordPress blog)."
+     }
+    }
+   },
+   "PostSummary": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer",
+      "example": 7
+     },
+     "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "example": "How to validate a startup idea"
+     },
+     "slug": {
+      "type": "string",
+      "example": "how-to-validate-a-startup-idea"
+     },
+     "excerpt": {
+      "type": "string",
+      "maxLength": 300
+     },
+     "cover_image": {
+      "type": "string",
+      "nullable": true,
+      "description": "Full URL, or a path starting with / served by the website."
+     },
+     "author": {
+      "type": "string",
+      "maxLength": 80,
+      "example": "Tactyqal"
+     },
+     "category": {
+      "type": "string",
+      "maxLength": 60,
+      "example": "Startups"
+     },
+     "tags": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "maxLength": 30
+      },
+      "maxItems": 10
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "draft",
+       "published"
+      ]
+     },
+     "read_minutes": {
+      "type": "integer",
+      "example": 3
+     },
+     "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "source_url": {
+      "type": "string",
+      "format": "uri",
+      "nullable": true,
+      "description": "Link to the original article (for example on the WordPress blog)."
+     }
+    }
+   },
+   "PostInput": {
+    "type": "object",
+    "required": [
+     "title",
+     "content"
+    ],
+    "properties": {
+     "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "example": "How to validate a startup idea"
+     },
+     "content": {
+      "type": "string",
+      "description": "Plain text. Blank line = new paragraph, \"## \" = heading, \"- \" = list item."
+     },
+     "excerpt": {
+      "type": "string",
+      "maxLength": 300
+     },
+     "cover_image": {
+      "type": "string",
+      "nullable": true,
+      "description": "Full URL, or a path starting with / served by the website."
+     },
+     "author": {
+      "type": "string",
+      "maxLength": 80,
+      "example": "Tactyqal"
+     },
+     "category": {
+      "type": "string",
+      "maxLength": 60,
+      "example": "Startups"
+     },
+     "tags": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "maxLength": 30
+      },
+      "maxItems": 10
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "draft",
+       "published"
+      ]
+     },
+     "source_url": {
+      "type": "string",
+      "format": "uri",
+      "nullable": true,
+      "description": "Link to the original article (for example on the WordPress blog)."
+     },
+     "read_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120,
+      "description": "Optional. Calculated from the content when omitted."
+     }
+    }
+   },
+   "PostUpdate": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "example": "How to validate a startup idea"
+     },
+     "content": {
+      "type": "string",
+      "description": "Plain text. Blank line = new paragraph, \"## \" = heading, \"- \" = list item."
+     },
+     "excerpt": {
+      "type": "string",
+      "maxLength": 300
+     },
+     "cover_image": {
+      "type": "string",
+      "nullable": true,
+      "description": "Full URL, or a path starting with / served by the website."
+     },
+     "author": {
+      "type": "string",
+      "maxLength": 80,
+      "example": "Tactyqal"
+     },
+     "category": {
+      "type": "string",
+      "maxLength": 60,
+      "example": "Startups"
+     },
+     "tags": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "maxLength": 30
+      },
+      "maxItems": 10
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "draft",
+       "published"
+      ]
+     },
+     "source_url": {
+      "type": "string",
+      "format": "uri",
+      "nullable": true,
+      "description": "Link to the original article (for example on the WordPress blog)."
+     },
+     "read_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120,
+      "description": "Optional. Calculated from the content when omitted."
+     }
+    },
+    "description": "Any subset of fields."
+   },
+   "ListMeta": {
+    "type": "object",
+    "properties": {
+     "page": {
+      "type": "integer"
+     },
+     "limit": {
+      "type": "integer"
+     },
+     "total": {
+      "type": "integer"
+     },
+     "pages": {
+      "type": "integer"
+     }
+    }
+   },
+   "Error": {
+    "type": "object",
+    "properties": {
+     "error": {
+      "type": "object",
+      "properties": {
+       "code": {
+        "type": "string",
+        "example": "validation_error"
+       },
+       "message": {
+        "type": "string"
+       },
+       "details": {
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "path": {
+           "type": "string"
+          },
+          "message": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "LeadInput": {
+    "type": "object",
+    "required": [
+     "name",
+     "email"
+    ],
+    "properties": {
+     "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80,
+      "example": "Asha Verma"
+     },
+     "email": {
+      "type": "string",
+      "format": "email"
+     },
+     "phone": {
+      "type": "string",
+      "example": "+91 98047 72106"
+     },
+     "message": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "website": {
+      "type": "string",
+      "description": "Honeypot. Leave empty."
+     }
+    }
+   },
+   "Lead": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "email": {
+      "type": "string"
+     },
+     "phone": {
+      "type": "string",
+      "nullable": true
+     },
+     "message": {
+      "type": "string",
+      "nullable": true
+     },
+     "source": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "new",
+       "contacted",
+       "closed"
+      ]
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time"
+     }
+    }
+   }
+  }
+ },
+ "paths": {
+  "/api/health": {
+   "get": {
+    "tags": [
+     "Meta"
+    ],
+    "summary": "Health check",
+    "responses": {
+     "200": {
+      "description": "Service is up",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/categories": {
+   "get": {
+    "tags": [
+     "Meta"
+    ],
+    "summary": "Categories with published post counts",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "name": {
+              "type": "string"
+             },
+             "posts": {
+              "type": "integer"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/posts": {
+   "get": {
+    "tags": [
+     "Posts"
+    ],
+    "summary": "List posts",
+    "description": "Published posts only by default. `status=all` or `draft` requires the admin token.",
+    "parameters": [
+     {
+      "name": "page",
+      "in": "query",
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "default": 1
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 50,
+       "default": 9
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "schema": {
+       "type": "string"
+      },
+      "description": "Full-text search over title, excerpt and content"
+     },
+     {
+      "name": "category",
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "tag",
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "status",
+      "in": "query",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "published",
+        "draft",
+        "all"
+       ],
+       "default": "published"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "A page of posts",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/PostSummary"
+           }
+          },
+          "meta": {
+           "$ref": "#/components/schemas/ListMeta"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Invalid query",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Drafts need the admin token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "Posts"
+    ],
+    "summary": "Create a post",
+    "description": "Slug, excerpt and read time are generated automatically.",
+    "security": [
+     {
+      "bearerAuth": []
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PostInput"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Created",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/Post"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Validation error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Missing or wrong token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/posts/{ref}": {
+   "get": {
+    "tags": [
+     "Posts"
+    ],
+    "summary": "Get one post by slug",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/Ref"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "The post",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/Post"
+          }
+         }
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Not found, or a draft without the token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "Posts"
+    ],
+    "summary": "Update a post by id (partial updates allowed; the slug never changes)",
+    "security": [
+     {
+      "bearerAuth": []
+     }
+    ],
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/Ref"
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PostUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Updated",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/Post"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Validation error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Missing or wrong token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Not found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "patch": {
+    "tags": [
+     "Posts"
+    ],
+    "summary": "Update a post by id (same as PUT)",
+    "security": [
+     {
+      "bearerAuth": []
+     }
+    ],
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/Ref"
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PostUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Updated",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/Post"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Validation error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Missing or wrong token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Not found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "Posts"
+    ],
+    "summary": "Delete a post by id",
+    "security": [
+     {
+      "bearerAuth": []
+     }
+    ],
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/Ref"
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Deleted"
+     },
+     "401": {
+      "description": "Missing or wrong token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Not found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/leads": {
+   "post": {
+    "tags": [
+     "Leads"
+    ],
+    "summary": "Request a free consultation (public)",
+    "description": "Rate limited to 5 requests per IP per 10 minutes.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LeadInput"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Received"
+     },
+     "400": {
+      "description": "Validation error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many requests",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "get": {
+    "tags": [
+     "Leads"
+    ],
+    "summary": "List consultation requests",
+    "security": [
+     {
+      "bearerAuth": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "page",
+      "in": "query",
+      "schema": {
+       "type": "integer",
+       "default": 1
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+       "type": "integer",
+       "default": 50,
+       "maximum": 100
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Newest first",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Lead"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Missing or wrong token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/leads/{id}": {
+   "patch": {
+    "tags": [
+     "Leads"
+    ],
+    "summary": "Update a lead status",
+    "security": [
+     {
+      "bearerAuth": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "required": [
+         "status"
+        ],
+        "properties": {
+         "status": {
+          "type": "string",
+          "enum": [
+           "new",
+           "contacted",
+           "closed"
+          ]
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Updated"
+     },
+     "400": {
+      "description": "Validation error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Missing or wrong token",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Not found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

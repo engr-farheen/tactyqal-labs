@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_PASSWORD: postgres, POSTGRES_DB: tactyqal }
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U postgres"], interval: 3s, retries: 10 }
+  api:
+    build: ./api
+    ports: ["4000:4000"]
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/tactyqal
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me}
+    depends_on: { db: { condition: service_healthy } }
+  web:
+    build: ./web
+    ports: ["3000:3000"]
+    environment:
+      API_URL: http://api:4000
+      SITE_URL: http://localhost:3000
+    depends_on: [api]
+volumes: { pgdata: {} }

@@ -1,0 +1,17 @@
+{
+  "name": "tactyqal-labs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tactyqal Labs: Next.js website and PostgreSQL blog API",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "install:all": "npm --prefix api ci && npm --prefix web ci",
+    "test": "npm --prefix api test && npm --prefix web test",
+    "lint": "npm --prefix web run lint",
+    "typecheck": "npm --prefix web run typecheck",
+    "e2e": "npm --prefix web run e2e",
+    "check": "npm run lint && npm run typecheck && npm test && npm run e2e"
+  }
+}
