@@ -14,7 +14,7 @@
     "import:wp": "node scripts/import-wordpress.js"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.15",
+    "@electric-sql/pglite": "^0.5.16",
     "express": "^5.3.0",
     "helmet": "^8.3.0",
     "pg": "^8.23.1",
